@@ -152,7 +152,7 @@ HTML_TEMPLATE = """
                                 <h3 class="text-lg font-bold text-white mt-1">${a.producto}</h3>
                             </div>
                             <span class="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded border border-emerald-500/20">
-                                Max: $${a.presupuesto_max.toLocaleString()}
+                                Max: ₡${a.presupuesto_max.toLocaleString('es-CR')}
                             </span>
                         </div>
                         <p class="text-sm text-slate-400 mb-4 bg-slate-900/50 p-3 rounded-xl border border-slate-900">${a.descripcion || 'Sin descripción.'}</p>
