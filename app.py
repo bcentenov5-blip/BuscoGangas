@@ -140,7 +140,7 @@ HTML_TEMPLATE = """
             }
 
             filtrados.forEach(a => {
-                const textoWhatsApp = encodeURIComponent(`¡Hola ${a.comprador}! Vi en BuscoGangas.com que buscas un "${a.producto}". Yo tengo uno disponible. ¿Hablamos?`);
+                const textoWhatsApp = encodeURIComponent(`¡Hola ${a.comprador}! Vi en BuscoGangas.shop que buscas un "${a.producto}". Yo tengo uno disponible. ¿Hablamos?`);
                 const enlaceWhatsApp = `https://wa.me/${a.telefono}?text=${textoWhatsApp}`;
 
                 contenedor.innerHTML += `
