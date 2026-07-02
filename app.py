@@ -12,11 +12,15 @@ class AnuncioBusqueda(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     comprador = db.Column(db.String(50), nullable=False)
     telefono = db.Column(db.String(20), nullable=False)
-    categoria = db.Column(db.String(30), nullable=False, default="Otros") # Nueva columna
+    categoria = db.Column(db.String(30), nullable=False, default="Otros")
     producto = db.Column(db.String(100), nullable=False) 
     presupuesto_max = db.Column(db.Float, nullable=False) 
     descripcion = db.Column(db.Text, nullable=True) 
     fecha_publicacion = db.Column(db.DateTime, default=datetime.utcnow)
+
+class Visita(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    fecha = db.Column(db.DateTime, default=datetime.utcnow)
 
 with app.app_context():
     db.create_all()
@@ -32,7 +36,6 @@ HTML_TEMPLATE = """
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans min-h-screen">
-
     <header class="border-b border-slate-800 bg-slate-950/50 backdrop-blur sticky top-0 z-50">
         <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
             <h1 class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">
@@ -195,7 +198,16 @@ HTML_TEMPLATE = """
 
 @app.route('/', methods=['GET'])
 def inicio():
+    # Registrar visita
+    nueva_visita = Visita()
+    db.session.add(nueva_visita)
+    db.session.commit()
     return render_template_string(HTML_TEMPLATE)
+
+@app.route('/contador')
+def ver_contador():
+    total_visitas = Visita.query.count()
+    return f"<h1>Total de visitas: {total_visitas}</h1>"
 
 @app.route('/publicar_busqueda', methods=['POST'])
 def publicar_busqueda():
