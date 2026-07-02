@@ -31,8 +31,9 @@ HTML_TEMPLATE = """
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="description" content="BuscoGangas.shop: El lugar para encontrar compradores y vendedores de tecnología, juegos y artículos del hogar en Costa Rica.">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BuscoGangas.shop | Panel de Control Ancestral</title>
+    <title>BuscoGangas.shop | El mercado de ofertas en Costa Rica
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans min-h-screen">
@@ -142,6 +143,7 @@ HTML_TEMPLATE = """
             filtrados.forEach(a => {
                 const textoWhatsApp = encodeURIComponent(`¡Hola ${a.comprador}! Vi en BuscoGangas.shop que buscas un "${a.producto}" por ₡${a.presupuesto_max.toLocaleString('es-CR')}. Yo tengo uno disponible. ¿Hablamos?`);
                 const enlaceWhatsApp = `https://wa.me/${a.telefono}?text=${textoWhatsApp}`;
+                const enlaceCompartir = `https://wa.me/?text=${encodeURIComponent('¡Hey! Mira lo que están buscando en BuscoGangas.shop: ' + a.producto + ' - ' + a.descripcion)}`;
 
                 contenedor.innerHTML += `
                     <div class="bg-slate-950 border border-slate-800 p-5 rounded-2xl relative overflow-hidden">
@@ -240,6 +242,11 @@ def ver_busquedas():
             "fecha": a.fecha_publicacion.strftime('%Y-%m-%d %H:%M')
         })
     return jsonify(resultado), 200
-
+@app.route('/mas_buscados', methods=['GET'])
+def mas_buscados():
+    # Aquí obtenemos los 3 productos más recientes como "tendencia"
+    anuncios = AnuncioBusqueda.query.order_by(AnuncioBusqueda.id.desc()).limit(3).all()
+    return jsonify([{"producto": a.producto} for a in anuncios])
+    
 if __name__ == '__main__':
     app.run(debug=True)
