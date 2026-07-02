@@ -4,7 +4,7 @@ from datetime import datetime
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///buscogangas.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 class AnuncioBusqueda(db.Model):
@@ -47,77 +47,75 @@ HTML_TEMPLATE = """
         <section class="md:col-span-1">
             <div class="bg-slate-950 border border-slate-800 p-6 rounded-2xl shadow-xl sticky top-24">
                 <h2 class="text-xl font-bold text-white mb-1">🚀 Publicar Búsqueda</h2>
-                <form id="formGanga" class="space-y-4 mt-4">
-                    <input type="text" id="comprador" required placeholder="Nombre" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-sm">
-                    <input type="tel" id="telefono" required placeholder="WhatsApp" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-sm">
-                    <select id="categoria" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-sm">
-                        <option value="Tecnología">Tecnología</option>
-                        <option value="Videojuegos">Videojuegos</option>
-                        <option value="Ropa">Ropa</option>
-                        <option value="Hogar">Hogar</option>
+                <form id="formGanga" class="space-y-4">
+                    <input type="text" id="comprador" required placeholder="Tu Nombre" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500 text-sm">
+                    <input type="tel" id="telefono" required placeholder="WhatsApp" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500 text-sm font-mono">
+                    <select id="categoria" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-cyan-500 text-sm">
+                        <option value="Tecnología">💻 Tecnología</option>
+                        <option value="Videojuegos">🎮 Videojuegos</option>
+                        <option value="Ropa">👕 Ropa</option>
+                        <option value="Hogar">🏠 Hogar</option>
+                        <option value="Otros">📦 Otros</option>
                     </select>
-                    <input type="text" id="producto" required placeholder="Producto" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-sm">
-                    <input type="number" id="presupuesto" required placeholder="Presupuesto" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-sm">
-                    <textarea id="descripcion" placeholder="Detalles..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-sm"></textarea>
-                    <button type="submit" class="w-full bg-cyan-500 text-slate-950 font-bold py-2 rounded-xl">Publicar</button>
+                    <input type="text" id="producto" required placeholder="Producto" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500 text-sm">
+                    <input type="number" id="presupuesto" required placeholder="Presupuesto" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500 text-sm font-mono">
+                    <textarea id="descripcion" rows="2" placeholder="Detalles..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500 text-sm resize-none"></textarea>
+                    <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-emerald-500 text-slate-950 font-bold py-3 px-4 rounded-xl shadow-lg text-sm uppercase">Publicar</button>
                 </form>
             </div>
         </section>
 
         <section class="md:col-span-2 space-y-4">
-            <div class="bg-slate-950 border border-slate-800 p-6 rounded-2xl">
+            <div class="bg-slate-950 border border-slate-800 p-6 rounded-2xl mb-8">
                 <h3 class="text-sm font-bold text-slate-400 uppercase mb-4">🔥 Tendencias:</h3>
                 <div id="listaTendencias" class="flex flex-wrap gap-2"></div>
             </div>
-            <input type="text" id="buscador" oninput="filtrarAnuncios()" placeholder="🔍 Buscar..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-sm">
+            <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl flex gap-3">
+                <input type="text" id="buscador" oninput="filtrarAnuncios()" placeholder="🔍 Buscar..." class="flex-1 bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm">
+                <select id="filtroCategoria" onchange="filtrarAnuncios()" class="bg-slate-900 border border-slate-800 rounded-xl px-4 py-2 text-white text-sm">
+                    <option value="TODAS">🌟 Todas</option>
+                    <option value="Tecnología">💻 Tecnología</option>
+                    <option value="Videojuegos">🎮 Videojuegos</option>
+                    <option value="Ropa">👕 Ropa</option>
+                    <option value="Hogar">🏠 Hogar</option>
+                </select>
+            </div>
             <div id="contenedorAnuncios" class="space-y-4"></div>
         </section>
     </main>
 
     <script>
-        async function cargarTendencias() {
-            const res = await fetch('/mas_buscados');
-            const data = await res.json();
-            const cont = document.getElementById('listaTendencias');
-            cont.innerHTML = data.map(t => `<span class="bg-slate-800 text-cyan-400 px-3 py-1 rounded-full text-xs">${t.producto}</span>`).join('');
-        }
-        
-        async function cargarAnuncios() {
-            const res = await fetch('/ver_busquedas');
-            window.todosLosAnuncios = await res.json();
+        let todosLosAnuncios = [];
+        async function cargarDatos() {
+            const [resA, resT] = await Promise.all([fetch('/ver_busquedas'), fetch('/mas_buscados')]);
+            todosLosAnuncios = await resA.json();
+            const tendencias = await resT.json();
+            document.getElementById('listaTendencias').innerHTML = tendencias.map(t => `<span class="bg-slate-800 text-cyan-400 px-3 py-1 rounded-full text-xs">${t.producto}</span>`).join('');
             filtrarAnuncios();
         }
-
         function filtrarAnuncios() {
             const texto = document.getElementById('buscador').value.toLowerCase();
-            const contenedor = document.getElementById('contenedorAnuncios');
-            const filtrados = window.todosLosAnuncios.filter(a => a.producto.toLowerCase().includes(texto));
-            contenedor.innerHTML = filtrados.map(a => `
-                <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl">
-                    <h3 class="font-bold">${a.producto}</h3>
-                    <p class="text-emerald-400 font-mono">₡${a.presupuesto_max.toLocaleString('es-CR')}</p>
-                    <a href="https://wa.me/${a.telefono}" target="_blank" class="text-cyan-400 text-xs">Contactar WhatsApp</a>
+            const cat = document.getElementById('filtroCategoria').value;
+            const cont = document.getElementById('contenedorAnuncios');
+            const filtrados = todosLosAnuncios.filter(a => (a.producto.toLowerCase().includes(texto) || a.descripcion.toLowerCase().includes(texto)) && (cat === "TODAS" || a.categoria === cat));
+            cont.innerHTML = filtrados.map(a => `
+                <div class="bg-slate-950 border border-slate-800 p-5 rounded-2xl">
+                    <h3 class="text-lg font-bold text-white">${a.producto}</h3>
+                    <p class="text-sm text-slate-400 mb-3">${a.descripcion}</p>
+                    <div class="flex justify-between items-center text-xs">
+                        <span class="text-emerald-400 font-bold">₡${a.presupuesto_max.toLocaleString('es-CR')}</span>
+                        <a href="https://wa.me/${a.telefono}" target="_blank" class="bg-emerald-500 text-slate-950 font-bold px-4 py-2 rounded-xl">🟢 YO LO TENGO</a>
+                    </div>
                 </div>
             `).join('');
         }
-
         document.getElementById('formGanga').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const datos = {
-                comprador: document.getElementById('comprador').value,
-                telefono: document.getElementById('telefono').value,
-                categoria: document.getElementById('categoria').value,
-                producto: document.getElementById('producto').value,
-                presupuesto_max: parseFloat(document.getElementById('presupuesto').value),
-                descripcion: document.getElementById('descripcion').value
-            };
-            await fetch('/publicar_busqueda', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(datos) });
+            await fetch('/publicar_busqueda', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ comprador: document.getElementById('comprador').value, telefono: document.getElementById('telefono').value, categoria: document.getElementById('categoria').value, producto: document.getElementById('producto').value, presupuesto_max: parseFloat(document.getElementById('presupuesto').value), descripcion: document.getElementById('descripcion').value }) });
             document.getElementById('formGanga').reset();
-            cargarAnuncios();
+            cargarDatos();
         });
-
-        cargarTendencias();
-        cargarAnuncios();
+        cargarDatos();
     </script>
 </body>
 </html>
@@ -131,20 +129,21 @@ def inicio():
 
 @app.route('/publicar_busqueda', methods=['POST'])
 def publicar_busqueda():
-    data = request.get_json()
-    db.session.add(AnuncioBusqueda(**data))
+    db.session.add(AnuncioBusqueda(**request.get_json()))
     db.session.commit()
     return jsonify({"mensaje": "OK"}), 201
 
 @app.route('/ver_busquedas')
 def ver_busquedas():
-    anuncios = AnuncioBusqueda.query.order_by(AnuncioBusqueda.fecha_publicacion.desc()).all()
-    return jsonify([{k: v for k, v in a.__dict__.items() if k != '_sa_instance_state'} for a in anuncios])
+    return jsonify([{k: v for k, v in a.__dict__.items() if k != '_sa_instance_state'} for a in AnuncioBusqueda.query.order_by(AnuncioBusqueda.fecha_publicacion.desc()).all()])
 
 @app.route('/mas_buscados')
 def mas_buscados():
-    anuncios = AnuncioBusqueda.query.order_by(AnuncioBusqueda.id.desc()).limit(3).all()
-    return jsonify([{"producto": a.producto} for a in anuncios])
+    return jsonify([{"producto": a.producto} for a in AnuncioBusqueda.query.order_by(AnuncioBusqueda.id.desc()).limit(3).all()])
+
+@app.route('/contador')
+def ver_contador():
+    return f"<h1>Total de visitas: {Visita.query.count()}</h1>"
 
 if __name__ == '__main__':
     app.run(debug=True)
