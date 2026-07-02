@@ -36,7 +36,7 @@ HTML_TEMPLATE = """
     <header class="border-b border-slate-800 bg-slate-950/50 backdrop-blur sticky top-0 z-50">
         <div class="max-w-5xl mx-auto px-4 py-4 flex justify-between items-center">
             <h1 class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">
-                BUSCO<span class="text-white">GANGAS</span>.com
+                BUSCO<span class="text-white">GANGAS</span>.shop
             </h1>
             <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full text-xs font-mono font-bold uppercase tracking-widest">
                 V1.2 • Filtros Activos
