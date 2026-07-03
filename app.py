@@ -8,11 +8,13 @@ app = Flask(__name__)
 # Configuración de base de datos robusta para Render + PostgreSQL
 db_url = os.environ.get('DATABASE_URL')
 if db_url and db_url.startswith("postgres://"):
-    db_url = db_url.replace("postgres://", "postgresql://", 1)
+    db_url = db_url.replace("postgres://", "postgresql+psycopg2://", 1)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    "pool_pre_ping": True,
+    "connect_args": {"sslmode": "require"}
+}
 
 class AnuncioBusqueda(db.Model):
     id = db.Column(db.Integer, primary_key=True)
