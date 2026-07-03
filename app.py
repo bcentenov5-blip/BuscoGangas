@@ -42,6 +42,10 @@ HTML_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="keywords" content="compras, ventas, Costa Rica, tecnología, ofertas, segunda mano">
+    <meta name="author" content="BuscoGangas.shop">
+    <meta property="og:title" content="BuscoGangas.shop | Encuentra y publica lo que buscas en CR">
+    <meta property="og:description" content="La plataforma para encontrar compradores y vendedores de tecnología en Costa Rica.">
     <title>BuscoGangas.shop</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
