@@ -117,8 +117,11 @@ HTML_TEMPLATE = """
 
 @app.route('/')
 def inicio():
-    db.session.add(Visita())
-    db.session.commit()
+    # Solo cuenta la visita si NO es un bot (simple filtro)
+    user_agent = request.headers.get('User-Agent', '').lower()
+    if 'bot' not in user_agent and 'uptime' not in user_agent:
+        db.session.add(Visita())
+        db.session.commit()
     return render_template_string(HTML_TEMPLATE)
 
 @app.route('/publicar_busqueda', methods=['POST'])
@@ -142,6 +145,10 @@ def contador_data():
 @app.route('/contador')
 def ver_contador():
     return f"<h1>Total de visitas: {Visita.query.count()}</h1>"
+    
+@app.route('/ping')
+def ping():
+    return "pong", 200    
     
 if __name__ == '__main__':
     app.run()
