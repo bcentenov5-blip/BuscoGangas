@@ -4,7 +4,13 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+
+# Configuración de base de datos robusta para Render + PostgreSQL
+db_url = os.environ.get('DATABASE_URL')
+if db_url and db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -30,7 +36,6 @@ HTML_TEMPLATE = """
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="description" content="BuscoGangas.shop: El lugar para encontrar compradores y vendedores de tecnología, juegos y artículos del hogar en Costa Rica.">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BuscoGangas.shop | El mercado de ofertas en Costa Rica</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -43,7 +48,6 @@ HTML_TEMPLATE = """
             </h1>
         </div>
     </header>
-
     <main class="max-w-5xl mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-3 gap-8">
         <section class="md:col-span-1">
             <div class="bg-slate-950 border border-slate-800 p-6 rounded-2xl shadow-xl sticky top-24">
@@ -65,9 +69,8 @@ HTML_TEMPLATE = """
                 </form>
             </div>
         </section>
-
         <section class="md:col-span-2 space-y-4">
-            <div class="bg-slate-950 border border-slate-800 p-6 rounded-2xl mb-8">
+            <div class="bg-slate-950 border border-slate-800 p-6 rounded-2xl">
                 <h3 class="text-sm font-bold text-slate-400 uppercase mb-4">🔥 Tendencias:</h3>
                 <div id="listaTendencias" class="flex flex-wrap gap-2"></div>
             </div>
@@ -84,7 +87,6 @@ HTML_TEMPLATE = """
             <div id="contenedorAnuncios" class="space-y-4"></div>
         </section>
     </main>
-
     <script>
         let todosLosAnuncios = [];
         async function cargarDatos() {
@@ -142,9 +144,5 @@ def ver_busquedas():
 def mas_buscados():
     return jsonify([{"producto": a.producto} for a in AnuncioBusqueda.query.order_by(AnuncioBusqueda.id.desc()).limit(3).all()])
 
-@app.route('/contador')
-def ver_contador():
-    return f"<h1>Total de visitas: {Visita.query.count()}</h1>"
-
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
