@@ -134,6 +134,10 @@ def mas_buscados():
 @app.route('/contador_data')
 def contador_data():
     return jsonify({"total": Visita.query.count()})
-
+    
+@app.route('/contador')
+def ver_contador():
+    return f"<h1>Total de visitas: {Visita.query.count()}</h1>"
+    
 if __name__ == '__main__':
     app.run()
