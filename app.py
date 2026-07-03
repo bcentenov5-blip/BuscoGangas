@@ -5,6 +5,7 @@ from datetime import datetime
 
 app = Flask(__name__)
 
+# Configuración con el Transaction Pooler (puerto 6543)
 db_url = os.environ.get('DATABASE_URL')
 if db_url and db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql+psycopg2://", 1)
@@ -45,6 +46,7 @@ HTML_TEMPLATE = """
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-900 text-slate-100 font-sans min-h-screen">
+    <header class="p-6 text-center"><h1 class="text-3xl font-black">BUSCO<span class="text-cyan-400">GANGAS</span>.shop</h1></header>
     <div class="max-w-5xl mx-auto p-4 grid grid-cols-1 md:grid-cols-3 gap-8">
         <section class="md:col-span-1">
             <form id="formGanga" class="bg-slate-950 border border-slate-800 p-6 rounded-2xl space-y-4">
@@ -65,15 +67,21 @@ HTML_TEMPLATE = """
             </form>
         </section>
         <section class="md:col-span-2 space-y-4">
+            <div id="listaTendencias" class="flex flex-wrap gap-2 mb-4"></div>
             <input type="text" id="buscador" oninput="renderizar()" placeholder="🔍 Buscar productos..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2 text-sm">
             <div id="contenedorAnuncios" class="space-y-4"></div>
+            <div id="contador" class="text-xs text-slate-600 mt-4"></div>
         </section>
     </div>
     <script>
         let anuncios = [];
         async function cargar() {
-            const res = await fetch('/ver_busquedas');
-            anuncios = await res.json();
+            const [resA, resT, resC] = await Promise.all([fetch('/ver_busquedas'), fetch('/mas_buscados'), fetch('/contador_data')]);
+            anuncios = await resA.json();
+            const tendencias = await resT.json();
+            const cont = await resC.json();
+            document.getElementById('listaTendencias').innerHTML = tendencias.map(t => `<span class="bg-slate-800 text-cyan-400 px-3 py-1 rounded-full text-xs">${t.producto}</span>`).join('');
+            document.getElementById('contador').innerText = "Visitas totales: " + cont.total;
             renderizar();
         }
         function renderizar() {
@@ -81,23 +89,18 @@ HTML_TEMPLATE = """
             const cont = document.getElementById('contenedorAnuncios');
             const filtrados = anuncios.filter(a => a.producto.toLowerCase().includes(busqueda));
             cont.innerHTML = filtrados.map(a => `
-                <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl">
-                    <h3 class="font-bold">${a.producto}</h3>
-                    <p class="text-emerald-400">₡${a.presupuesto_max.toLocaleString('es-CR')}</p>
-                    <a href="https://wa.me/${a.telefono}" target="_blank" class="text-cyan-400 text-xs">Contactar por WhatsApp</a>
+                <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl flex justify-between items-center">
+                    <div>
+                        <h3 class="font-bold">${a.producto}</h3>
+                        <p class="text-emerald-400">₡${a.presupuesto_max.toLocaleString('es-CR')}</p>
+                    </div>
+                    <a href="https://wa.me/${a.telefono}" target="_blank" class="bg-emerald-500 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs">🟢 YO LO TENGO</a>
                 </div>
             `).join('');
         }
         document.getElementById('formGanga').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const datos = {
-                comprador: document.getElementById('comprador').value,
-                telefono: document.getElementById('telefono').value,
-                categoria: document.getElementById('categoria').value,
-                producto: document.getElementById('producto').value,
-                presupuesto_max: parseFloat(document.getElementById('presupuesto').value),
-                descripcion: document.getElementById('descripcion').value
-            };
+            const datos = { comprador: document.getElementById('comprador').value, telefono: document.getElementById('telefono').value, categoria: document.getElementById('categoria').value, producto: document.getElementById('producto').value, presupuesto_max: parseFloat(document.getElementById('presupuesto').value), descripcion: document.getElementById('descripcion').value };
             await fetch('/publicar_busqueda', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(datos) });
             document.getElementById('formGanga').reset();
             cargar();
@@ -122,8 +125,15 @@ def publicar_busqueda():
 
 @app.route('/ver_busquedas')
 def ver_busquedas():
-    anuncios = AnuncioBusqueda.query.order_by(AnuncioBusqueda.fecha_publicacion.desc()).all()
-    return jsonify([{k: v for k, v in a.__dict__.items() if k != '_sa_instance_state'} for a in anuncios])
+    return jsonify([{k: v for k, v in a.__dict__.items() if k != '_sa_instance_state'} for a in AnuncioBusqueda.query.order_by(AnuncioBusqueda.fecha_publicacion.desc()).all()])
+
+@app.route('/mas_buscados')
+def mas_buscados():
+    return jsonify([{"producto": a.producto} for a in AnuncioBusqueda.query.order_by(AnuncioBusqueda.id.desc()).limit(3).all()])
+
+@app.route('/contador_data')
+def contador_data():
+    return jsonify({"total": Visita.query.count()})
 
 if __name__ == '__main__':
     app.run()
