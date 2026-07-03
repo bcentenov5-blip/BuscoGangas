@@ -1,10 +1,11 @@
+import os
 from flask import Flask, request, jsonify, render_template_string
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///buscogangas.db'
-app.config['TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 class AnuncioBusqueda(db.Model):
